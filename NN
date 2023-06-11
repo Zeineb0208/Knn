@@ -1,0 +1,306 @@
+import math 
+ import time 
+ import matplotlib.pyplot as plt 
+ import matplotlib.patches as patches 
+ import matplotlib.cm as cm 
+  
+  
+  
+ def get_distance(x1, y1, x2, y2): 
+     """ 
+     Calculates the distance between two points. 
+  
+     Args: 
+         x1: The x-coordinate of the first point. 
+         y1: The y-coordinate of the first point. 
+         x2: The x-coordinate of the second point. 
+         y2: The y-coordinate of the second point. 
+  
+     Returns: 
+         The distance between the two points. 
+     """ 
+     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2) 
+  
+  
+ def get_nearest_neighbors(locations, k): 
+     """ 
+     Finds the k nearest neighbors of each location. 
+  
+     Args: 
+         locations: A list of locations. 
+         k: The number of nearest neighbors to find. 
+  
+     Returns: 
+         A list of lists, where each inner list contains the k nearest neighbors of a location. 
+     """ 
+     nearest_neighbors = [] 
+     for location in locations: 
+         distances = [] 
+         for other_location in locations: 
+             distances.append( 
+                 (get_distance(location[0], location[1], other_location[0], other_location[1]), other_location)) 
+         distances.sort() 
+         nearest_neighbors.append(distances[1:k + 1])  # Exclude the first element (self) and take k nearest neighbors 
+  
+     return nearest_neighbors 
+  
+  
+ def get_routes(locations, k, nearest_neighbors): 
+     routes = [] 
+     unvisited_locations = set(locations[1:])  # Exclude the depot location (index 0) 
+  
+     remaining_capacity = len(locations) - 2  # Capacity of each vehicle 
+  
+     for i in range(k): 
+         route = [locations[0]]  # Start with the depot as the starting point 
+  
+         while unvisited_locations and remaining_capacity > 0: 
+             distances = [(get_distance(location[0], location[1], route[-1][0], route[-1][1]), location) 
+                          for location in unvisited_locations] 
+  
+             nearest_location = min(distances, key=lambda x: x[0])[1] 
+  
+             route.append(nearest_location) 
+             unvisited_locations.remove(nearest_location) 
+             remaining_capacity -= 1 
+  
+         route.append(locations[0])  # Add the depot as the ending point 
+         routes.append(route) 
+  
+     return routes 
+  
+  
+ def get_good_solution(locations, k, nearest_neighbors): 
+     routes = [] 
+     unvisited_locations = set(locations[1:])  # Exclude the depot location (index 0) 
+  
+     # Divide the locations evenly between the vehicles 
+     locations_per_vehicle = len(locations[1:]) // k 
+     remaining_locations = len(locations[1:]) 
+  
+     for i in range(k): 
+         route = [locations[0]]  # Start with the depot as the starting and ending point 
+         remaining_capacity = locations_per_vehicle  # Capacity of each vehicle 
+  
+         while unvisited_locations and remaining_capacity > 0: 
+             distances = [(get_distance(location[0], location[1], route[-1][0], route[-1][1]), location) 
+                          for location in unvisited_locations] 
+  
+             nearest_location = min(distances, key=lambda x: x[0])[1] 
+  
+             route.append(nearest_location) 
+             unvisited_locations.remove(nearest_location) 
+             remaining_capacity -= 1 
+  
+         route.append(locations[0])  # Add the depot as the ending point 
+         routes.append(route) 
+  
+         remaining_locations -= locations_per_vehicle 
+  
+     # If there are remaining locations, distribute them evenly among the vehicles 
+     if remaining_locations > 0: 
+         for i in range(remaining_locations): 
+             location = unvisited_locations.pop() 
+             routes[i % k].insert(-1, location) 
+  
+     return routes 
+  
+  
+ if __name__ == "__main__": 
+     # Number of vehicles 
+     k = 10 
+  
+     # Coordinates of the locations 
+     locations = [ 
+         (714187.08, 3838925.34), 
+           (714187.08, 3838935.34), 
+           (714197.08, 3838935.34), 
+           (714207.08, 3838935.34), 
+           (714217.08, 3838935.34), 
+           (714227.08, 3838935.34), 
+           (714237.08, 3838935.34), 
+           (714247.08, 3838935.34), 
+           (714257.08, 3838935.34), 
+           (714267.08, 3838935.34), 
+           (714277.08, 3838935.34), 
+           (714287.08, 3838935.34), 
+           (714297.08, 3838935.34), 
+           (714307.08, 3838935.34), 
+           (714187.08, 3838945.34), 
+           (714197.08, 3838945.34), 
+           (714207.08, 3838945.34), 
+           (714217.08, 3838945.34), 
+           (714227.08, 3838945.34), 
+           (714237.08, 3838945.34), 
+           (714247.08, 3838945.34), 
+           (714257.08, 3838945.34), 
+           (714267.08, 3838945.34), 
+           (714277.08, 3838945.34), 
+           (714287.08, 3838945.34), 
+           (714297.08, 3838945.34), 
+           (714307.08, 3838945.34), 
+           (714187.08, 3838955.34), 
+           (714197.08, 3838955.34), 
+           (714207.08, 3838955.34), 
+           (714217.08, 3838955.34), 
+           (714227.08, 3838955.34), 
+           (714237.08, 3838955.34), 
+           (714247.08, 3838955.34), 
+           (714257.08, 3838955.34), 
+           (714267.08, 3838955.34), 
+           (714277.08, 3838955.34), 
+           (714287.08, 3838955.34), 
+           (714297.08, 3838955.34), 
+           (714307.08, 3838955.34), 
+           (714187.08, 3838965.34), 
+           (714197.08, 3838965.34), 
+           (714207.08, 3838965.34), 
+           (714217.08, 3838965.34), 
+           (714227.08, 3838965.34), 
+           (714237.08, 3838965.34), 
+           (714247.08, 3838965.34), 
+           (714257.08, 3838965.34), 
+           (714267.08, 3838965.34), 
+           (714277.08, 3838965.34), 
+           (714287.08, 3838965.34), 
+           (714297.08, 3838965.34), 
+           (714307.08, 3838965.34), 
+           (714187.08, 3838975.34), 
+           (714197.08, 3838975.34), 
+           (714207.08, 3838975.34), 
+           (714217.08, 3838975.34), 
+           (714227.08, 3838975.34), 
+           (714237.08, 3838975.34), 
+           (714247.08, 3838975.34), 
+           (714257.08, 3838975.34), 
+           (714267.08, 3838975.34), 
+           (714277.08, 3838975.34), 
+           (714287.08, 3838975.34), 
+           (714297.08, 3838975.34), 
+           (714307.08, 3838975.34), 
+           (714187.08, 3838985.34), 
+           (714197.08, 3838985.34), 
+           (714207.08, 3838985.34), 
+           (714217.08, 3838985.34), 
+           (714227.08, 3838985.34), 
+           (714237.08, 3838985.34), 
+           (714247.08, 3838985.34), 
+           (714257.08, 3838985.34), 
+           (714267.08, 3838985.34), 
+           (714277.08, 3838985.34), 
+           (714287.08, 3838985.34), 
+           (714297.08, 3838985.34), 
+           (714307.08, 3838985.34), 
+           (714187.08, 3838995.34), 
+           (714197.08, 3838995.34), 
+           (714207.08, 3838995.34), 
+           (714217.08, 3838995.34), 
+           (714227.08, 3838995.34), 
+           (714237.08, 3838995.34), 
+           (714247.08, 3838995.34), 
+           (714257.08, 3838995.34), 
+           (714267.08, 3838995.34), 
+           (714277.08, 3838995.34), 
+           (714287.08, 3838995.34), 
+           (714297.08, 3838995.34), 
+           (714307.08, 3838995.34), 
+           (714187.08, 3839005.34), 
+           (714197.08, 3839005.34), 
+           (714207.08, 3839005.34), 
+           (714217.08, 3839005.34), 
+           (714227.08, 3839005.34), 
+           (714237.08, 3839005.34), 
+           (714247.08, 3839005.34), 
+           (714257.08, 3839005.34), 
+           (714267.08, 3839005.34), 
+           (714277.08, 3839005.34), 
+           (714287.08, 3839005.34), 
+           (714297.08, 3839005.34), 
+           (714307.08, 3839005.34), 
+           (714187.08, 3839015.34), 
+           (714197.08, 3839015.34), 
+           (714207.08, 3839015.34), 
+           (714217.08, 3839015.34), 
+           (714227.08, 3839015.34), 
+           (714237.08, 3839015.34), 
+           (714247.08, 3839015.34), 
+           (714257.08, 3839015.34), 
+           (714267.08, 3839015.34), 
+           (714277.08, 3839015.34), 
+           (714287.08, 3839015.34), 
+           (714297.08, 3839015.34), 
+           (714307.08, 3839015.34), 
+           (714187.08, 3839025.34), 
+           (714197.08, 3839025.34), 
+           (714207.08, 3839025.34), 
+           (714217.08, 3839025.34), 
+           (714227.08, 3839025.34), 
+           (714237.08, 3839025.34), 
+           (714247.08, 3839025.34), 
+           (714257.08, 3839025.34), 
+           (714267.08, 3839025.34), 
+           (714277.08, 3839025.34), 
+           (714287.08, 3839025.34), 
+           (714297.08, 3839025.34), 
+           (714307.08, 3839025.34), 
+           (714187.08, 3839035.34), 
+           (714197.08, 3839035.34), 
+           (714207.08, 3839035.34), 
+           (714217.08, 3839035.34), 
+           (714227.08, 3839035.34), 
+           (714237.08, 3839035.34), 
+           (714247.08, 3839035.34), 
+           (714257.08, 3839035.34), 
+           (714267.08, 3839035.34), 
+           (714277.08, 3839035.34), 
+           (714287.08, 3839035.34), 
+           (714297.08, 3839035.34), 
+           (714307.08, 3839035.34), 
+           (714187.08, 3839045.34), 
+           (714197.08, 3839045.34), 
+           (714207.08, 3839045.34), 
+           (714217.08, 3839045.34), 
+           (714227.08, 3839045.34), 
+           (714237.08, 3839045.34), 
+           (714247.08, 3839045.34), 
+           (714257.08, 3839045.34), 
+           (714267.08, 3839045.34), 
+           (714277.08, 3839045.34), 
+           (714287.08, 3839045.34), 
+           (714297.08, 3839045.34), 
+           (714307.08, 3839045.34) 
+     ] 
+  
+     # Find the nearest neighbors 
+     nearest_neighbors = get_nearest_neighbors(locations, k) 
+  
+     start_time = time.time() 
+  
+     # Obtain a good solution using nearest neighbors and local search 
+     routes = get_good_solution(locations, k, nearest_neighbors) 
+  
+     end_time = time.time() 
+  
+     # Calculate the total distance of the best solution 
+     best_distance = sum(get_distance(route[i][0], route[i][1], route[i + 1][0], route[i + 1][1]) 
+                         for route in routes for i in range(len(route) - 1)) 
+  
+     # Print the best distance and runtime 
+     print("Best Distance:", best_distance) 
+     print("Runtime:", end_time - start_time, "seconds") 
+  
+     # Plot the solution 
+     plt.figure(figsize=(10, 10)) 
+     plt.scatter(*zip(*locations), color='blue') 
+     cmap = cm.get_cmap('hsv', k + 1) 
+  
+     for i, route in enumerate(routes): 
+         xs, ys = zip(*route) 
+         plt.plot(xs, ys, marker='o', color=cmap(i), linestyle='-') 
+         plt.plot(xs[0], ys[0], marker='s', color='red') 
+  
+     plt.xlabel('X') 
+     plt.ylabel('Y') 
+     plt.title('Vehicle Routing Problem (NN)') 
+     plt.grid(True) 
+     plt.show()
